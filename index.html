@@ -1,72 +1,119 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EL Calc V3</title>
+    <title>KSR Service Calc</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📅</text></svg>">
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f0f2f5; }
-        .box { background: white; padding: 20px; border-radius: 10px; max-width: 300px; margin: auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
-        #output { margin-top: 20px; padding: 10px; background: #e9ecef; border-radius: 5px; display: none; text-align: center; }
+        :root { --primary: #059669; --bg: #f3f4f6; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 15px; margin: 0; }
+        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { text-align: center; color: #111827; margin-bottom: 5px; }
+        p.sub { text-align: center; font-size: 12px; color: #6b7280; margin-bottom: 20px; }
+        label { display: block; margin: 15px 0 5px; font-weight: 600; font-size: 14px; }
+        input[type="date"], input[type="number"] { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
+        
+        .toggle-container { display: flex; align-items: center; margin: 15px 0; background: #ecfdf5; padding: 10px; border-radius: 10px; }
+        .toggle-container input { width: auto; margin-right: 10px; scale: 1.5; }
+        
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        button { flex: 2; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .btn-reset { flex: 1; background: #9ca3af; }
+        
+        #result-area { margin-top: 20px; padding: 20px; background: #f0fdf4; border: 2px solid #d1fae5; border-radius: 15px; display: none; text-align: center; }
+        .res-val { font-size: 32px; color: var(--primary); font-weight: 800; margin: 10px 0; }
+        .copy-btn { background: none; color: var(--primary); border: 1px solid var(--primary); padding: 5px 10px; font-size: 12px; margin-top: 5px; width: auto; }
+
+        .history { margin-top: 25px; border-top: 1px solid #e5e7eb; padding-top: 15px; }
+        .history-item { font-size: 12px; background: white; border-bottom: 1px solid #f3f4f6; padding: 8px 0; display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
 
-<div class="box">
-    <h3>EL Calculator</h3>
+<div class="card">
+    <h2>Service Calc</h2>
+    <p class="sub">Kerala Govt Service Rules (EL)</p>
+    
     <label>From Date</label>
     <input type="date" id="d1">
     
     <label>To Date</label>
     <input type="date" id="d2">
     
-    <label>Other Leaves</label>
+    <label>Other Leave Taken (Days)</label>
     <input type="number" id="lv" value="0">
-    
-    <button onclick="runCalc()">Calculate Now</button>
 
-    <div id="output">
-        <strong>Result:</strong><br>
-        <span id="res" style="font-size: 24px; color: #007bff;"></span>
+    <div class="toggle-container">
+        <input type="checkbox" id="firstYear">
+        <label style="margin:0; cursor:pointer;" for="firstYear">First Year of Service? (1/22)</label>
+    </div>
+    
+    <div class="btn-group">
+        <button onclick="calculate()">Calculate</button>
+        <button class="btn-reset" onclick="resetAll()">Reset</button>
+    </div>
+
+    <div id="result-area">
+        <div style="font-size: 14px; color: #374151;">Earned Leave Result:</div>
+        <div class="res-val" id="resDisplay"></div>
+        <button class="copy-btn" onclick="copyResult()">📋 Copy Result</button>
+    </div>
+
+    <div class="history">
+        <div style="font-weight: bold; font-size: 14px; margin-bottom: 10px;">Recent History</div>
+        <div id="historyList"></div>
     </div>
 </div>
 
 <script>
-    function runCalc() {
-        // 1. Get values
+    function calculate() {
         const s1 = document.getElementById('d1').value;
         const s2 = document.getElementById('d2').value;
         const leaves = parseInt(document.getElementById('lv').value) || 0;
+        const isFirstYear = document.getElementById('firstYear').checked;
+        const ratio = isFirstYear ? 22 : 11;
 
-        // 2. Validate
-        if (!s1 || !s2) {
-            alert("Please select both dates!");
-            return;
-        }
+        if (!s1 || !s2) { alert("Select dates!"); return; }
 
-        const date1 = new Date(s1);
-        const date2 = new Date(s2);
+        const d1 = new Date(s1);
+        const d2 = new Date(s2);
+        if (d2 < d1) { alert("Invalid Date Range"); return; }
 
-        if (date2 < date1) {
-            alert("End date is before start date!");
-            return;
-        }
-
-        // 3. Math
-        const timeDiff = date2.getTime() - date1.getTime();
-        const totalDays = Math.floor(timeDiff / (1000 * 3600 * 24)) + 1;
+        const totalDays = Math.floor((d2 - d1) / (1000 * 3600 * 24)) + 1;
         const net = totalDays - leaves;
-
-        const full = Math.floor(net / 11);
-        const rem = net % 11;
-
-        // 4. Display
-        let final = (rem === 0) ? full : full + " - " + rem + "/11";
         
-        document.getElementById('output').style.display = 'block';
-        document.getElementById('res').innerText = final;
+        const full = Math.floor(net / ratio);
+        const rem = net % ratio;
+        const resultText = (rem === 0) ? full : `${full} - ${rem}/${ratio}`;
+
+        document.getElementById('result-area').style.display = 'block';
+        document.getElementById('resDisplay').innerText = resultText;
+
+        saveToHistory(resultText, `${s1} to ${s2}`);
+    }
+
+    function copyResult() {
+        const text = document.getElementById('resDisplay').innerText;
+        navigator.clipboard.writeText("My Earned Leave: " + text);
+        alert("Result copied to clipboard!");
+    }
+
+    function resetAll() {
+        document.getElementById('d1').value = '';
+        document.getElementById('d2').value = '';
+        document.getElementById('lv').value = '0';
+        document.getElementById('firstYear').checked = false;
+        document.getElementById('result-area').style.display = 'none';
+    }
+
+    function saveToHistory(res, period) {
+        const list = document.getElementById('historyList');
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        item.innerHTML = `<span>${period}</span> <strong>${res}</strong>`;
+        list.prepend(item);
+        if(list.children.length > 5) list.lastChild.remove();
     }
 </script>
 
