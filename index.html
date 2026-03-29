@@ -7,33 +7,41 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📜</text></svg>">
     <style>
         :root { --primary: #059669; --accent: #2563eb; --warning: #d97706; --bg: #f3f4f6; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; color: #1f2937; }
         
+        /* Navigation Tabs */
         .tabs { display: flex; background: white; position: sticky; top: 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 100; overflow-x: auto; }
-        .tab-btn { flex: 1; min-width: 100px; padding: 15px; border: none; background: none; font-weight: bold; color: #9ca3af; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; }
+        .tab-btn { flex: 1; min-width: 100px; padding: 16px; border: none; background: none; font-weight: bold; color: #9ca3af; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: 0.2s; }
         .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); }
 
         .container { display: flex; justify-content: center; padding: 15px; }
-        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 420px; display: none; }
-        .card.active { display: block; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .card { background: white; padding: 25px; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 420px; display: none; }
+        .card.active { display: block; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         h2 { text-align: center; margin: 0 0 20px 0; font-size: 20px; color: #111827; }
-        label { display: block; margin: 15px 0 5px; font-weight: 600; font-size: 14px; color: #374151; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 10px; box-sizing: border-box; font-size: 16px; margin-bottom: 5px; background: white; }
+        label { display: block; margin: 15px 0 6px; font-weight: 600; font-size: 14px; color: #4b5563; }
+        input, select { width: 100%; padding: 14px; border: 2px solid #e5e7eb; border-radius: 12px; box-sizing: border-box; font-size: 16px; margin-bottom: 5px; background: white; transition: border-color 0.2s; }
+        input:focus { outline: none; border-color: var(--primary); }
         
-        .opt-box { background: #f0fdf4; padding: 12px; border-radius: 10px; display: flex; align-items: center; margin: 15px 0; border: 1px solid #d1fae5; }
-        .opt-box input { width: auto; margin-right: 10px; margin-bottom: 0; scale: 1.3; }
+        /* Options/Toggles */
+        .opt-box { background: #f0fdf4; padding: 14px; border-radius: 12px; display: flex; align-items: center; margin: 15px 0; border: 1px solid #d1fae5; cursor: pointer; }
+        .opt-box input { width: auto; margin-right: 12px; margin-bottom: 0; scale: 1.4; }
 
-        .btn-row { display: flex; gap: 10px; margin-top: 15px; }
-        button { flex: 2; border: none; padding: 16px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; color: white; transition: opacity 0.2s; }
+        /* Buttons */
+        .btn-row { display: flex; gap: 10px; margin-top: 20px; }
+        button { flex: 2; border: none; padding: 16px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; color: white; transition: 0.2s; }
+        button:active { transform: scale(0.98); opacity: 0.9; }
         .btn-calc { background: var(--primary); }
-        .btn-reset { flex: 1; background: #9ca3af; }
+        .btn-reset { flex: 1; background: #f3f4f6; color: #6b7280; }
         
-        .result-box { margin-top: 20px; padding: 15px; border-radius: 12px; text-align: center; display: none; border: 1px dashed #cbd5e1; }
+        /* Result Displays */
+        .result-box { margin-top: 25px; padding: 20px; border-radius: 16px; text-align: center; display: none; border: 1px solid transparent; }
         .res-val { font-size: 22px; font-weight: 800; margin: 5px 0; line-height: 1.2; }
-        .res-sub { font-size: 13px; color: #64748b; margin-top: 10px; }
-        .ksr-note { font-size: 11px; color: #9ca3af; text-align: center; margin-top: 20px; line-height: 1.4; }
+        .res-label { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+        .copy-link { font-size: 11px; text-decoration: underline; color: inherit; cursor: pointer; margin-top: 8px; display: inline-block; }
+
+        .ksr-note { font-size: 11px; color: #9ca3af; text-align: center; margin-top: 25px; line-height: 1.4; padding: 0 10px; }
     </style>
 </head>
 <body>
@@ -47,66 +55,63 @@
     <div class="container">
         <div id="el-tab" class="card active">
             <h2>Earned Leave Calculator</h2>
-            <label>From Date</label><input type="date" id="elfrom">
-            <label>To Date</label><input type="date" id="elto">
-            <label>Other Leaves (Days)</label><input type="number" id="ellv" value="0">
-            <div class="opt-box">
-                <input type="checkbox" id="isFirstYear"><label style="margin:0" for="isFirstYear">First Year of Service? (1/22)</label>
-            </div>
+            <label>Duty From Date</label><input type="date" id="elfrom">
+            <label>Duty To Date</label><input type="date" id="elto">
+            <label>Other Leave Taken (Days)</label><input type="number" id="ellv" value="0">
+            <label class="opt-box">
+                <input type="checkbox" id="isFirstYear">
+                <span>First Year of Service (1/22 Ratio)</span>
+            </label>
             <div class="btn-row">
-                <button class="btn-calc" onclick="calcEL()">Calculate</button>
+                <button class="btn-calc" onclick="calcEL()">Calculate EL</button>
                 <button class="btn-reset" onclick="resetForm('el-tab')">Reset</button>
             </div>
-            <div id="el-res-box" class="result-box" style="background:#ecfdf5">
-                <div style="font-size:13px">Total Earned Leave:</div>
-                <div class="res-val" id="el-display" style="color:var(--primary)"></div>
+            <div id="el-res-box" class="result-box" style="background:#ecfdf5; border-color:#10b981; color:#065f46;">
+                <div class="res-label">Accrued Earned Leave:</div>
+                <div class="res-val" id="el-display"></div>
             </div>
+            <p class="ksr-note">Based on KSR: Default ratio is 1/11. Other leaves like LWA/HPL are excluded from duty days.</p>
         </div>
 
         <div id="ret-tab" class="card">
-            <h2>Retirement Date</h2>
+            <h2>Retirement Details</h2>
             <label>Date of Birth</label><input type="date" id="dob">
             <label>Retirement Age</label><input type="number" id="retage" value="56">
             <div class="btn-row">
                 <button class="btn-calc" style="background:var(--accent)" onclick="calcRet()">Calculate</button>
                 <button class="btn-reset" onclick="resetForm('ret-tab')">Reset</button>
             </div>
-            <div id="ret-res-box" class="result-box" style="background:#eff6ff">
-                <div style="font-size:13px">Date of Retirement:</div>
-                <div class="res-val" id="ret-display" style="color:var(--accent)"></div>
-                <div id="ret-rem" style="font-size:12px; color:#ef4444; font-weight:bold"></div>
+            <div id="ret-res-box" class="result-box" style="background:#eff6ff; border-color:#3b82f6; color:#1e40af;">
+                <div class="res-label">Superannuation Date:</div>
+                <div class="res-val" id="ret-display"></div>
+                <div id="ret-rem" style="font-size:13px; margin-top:10px; font-weight:700; color:#ef4444;"></div>
             </div>
+            <p class="ksr-note">KSR Rule: If DOB is the 1st, retirement is the last day of the previous month.</p>
         </div>
 
         <div id="prob-tab" class="card">
             <h2>Probation Calculator</h2>
-            <label>Date of Entry into Service</label>
-            <input type="date" id="doj">
-            
+            <label>Date of Entry into Service</label><input type="date" id="doj">
             <label>Probation Period</label>
             <select id="prob-period">
                 <option value="2">2 Years</option>
                 <option value="1">1 Year</option>
                 <option value="0.5">6 Months</option>
             </select>
-            
-            <label>Non-Probation Days (Leave, etc.)</label>
-            <input type="number" id="non-prob" value="0">
-
+            <label>Days Not Counted (LWA, Suffix etc.)</label><input type="number" id="non-prob" value="0">
             <div class="btn-row">
                 <button class="btn-calc" style="background:var(--warning)" onclick="calcProb()">Calculate</button>
                 <button class="btn-reset" onclick="resetForm('prob-tab')">Reset</button>
             </div>
-
-            <div id="prob-res-box" class="result-box" style="background:#fff7ed; text-align: left;">
-                <div style="font-size:13px; color:#9a3412;">1. Date of Completion:</div>
-                <div class="res-val" id="prob-comp-display" style="color:var(--warning); margin-bottom:15px;"></div>
-                
-                <div style="font-size:13px; color:#9a3412; border-top: 1px solid #ffedd5; padding-top:10px;">2. Date of Declaration:</div>
-                <div class="res-val" id="prob-decl-display" style="color:var(--warning);"></div>
-                <div style="font-size:11px; color:#c2410c; font-style:italic;">(Forenoon of the next day)</div>
+            <div id="prob-res-box" class="result-box" style="background:#fff7ed; border-color:#f59e0b; color:#9a3412; text-align: left;">
+                <div class="res-label">1. Date of Completion:</div>
+                <div class="res-val" id="prob-comp-display" style="margin-bottom:12px;"></div>
+                <div class="res-label" style="border-top: 1px solid #ffedd5; padding-top:10px;">2. Date of Declaration:</div>
+                <div class="res-val" id="prob-decl-display"></div>
+                <div style="font-size:11px; opacity:0.8;">(Forenoon of the next day)</div>
+                <div class="copy-link" onclick="copyProb()">📋 Copy Probation Dates</div>
             </div>
-            <p class="ksr-note">Calculation as per KSR: Date of completion is the Afternoon (AN) of the calculated date.</p>
+            <p class="ksr-note">KSR Rule: Period of probation is usually X years within a continuous period of Y years.</p>
         </div>
     </div>
 
@@ -132,8 +137,9 @@
         function calcEL() {
             const f = document.getElementById('elfrom').value, t = document.getElementById('elto').value;
             const lv = parseInt(document.getElementById('ellv').value) || 0, ratio = document.getElementById('isFirstYear').checked ? 22 : 11;
-            if(!f || !t) return alert("Select dates");
+            if(!f || !t) return alert("Please select dates");
             const net = Math.floor((new Date(t) - new Date(f)) / 86400000) + 1 - lv;
+            if(net < 0) return alert("Other leaves cannot exceed total days");
             const full = Math.floor(net / ratio), rem = net % ratio;
             document.getElementById('el-display').innerText = rem === 0 ? full : `${full} - ${rem}/${ratio}`;
             document.getElementById('el-res-box').style.display = 'block';
@@ -141,39 +147,36 @@
 
         function calcRet() {
             const b = document.getElementById('dob').value, age = parseInt(document.getElementById('retage').value);
-            if(!b) return alert("Enter DOB");
+            if(!b) return alert("Enter Date of Birth");
             let dob = new Date(b), d = dob.getDate(), m = dob.getMonth(), y = dob.getFullYear();
             let retDate = (d === 1) ? new Date(y + age, m, 0) : new Date(y + age, m + 1, 0);
             document.getElementById('ret-display').innerText = retDate.toLocaleDateString('en-IN', {day:'2-digit', month:'long', year:'numeric'});
             let now = new Date(), diffY = retDate.getFullYear() - now.getFullYear(), diffM = retDate.getMonth() - now.getMonth(), diffD = retDate.getDate() - now.getDate();
             if (diffD < 0) { diffM--; diffD += new Date(retDate.getFullYear(), retDate.getMonth(), 0).getDate(); }
             if (diffM < 0) { diffY--; diffM += 12; }
-            document.getElementById('ret-rem').innerText = `Service Left: ${diffY}y, ${diffM}m, ${diffD}d`;
+            document.getElementById('ret-rem').innerText = (retDate < now) ? "Retired" : `Service Left: ${diffY}y, ${diffM}m, ${diffD}d`;
             document.getElementById('ret-res-box').style.display = 'block';
         }
 
         function calcProb() {
-            const dojVal = document.getElementById('doj').value;
-            const periodYears = parseFloat(document.getElementById('prob-period').value);
-            const extraDays = parseInt(document.getElementById('non-prob').value) || 0;
-
+            const dojVal = document.getElementById('doj').value, period = parseFloat(document.getElementById('prob-period').value), extra = parseInt(document.getElementById('non-prob').value) || 0;
             if(!dojVal) return alert("Enter Date of Joining");
-
             let doj = new Date(dojVal);
-            
-            // Completion Date = DOJ + Period - 1 day + Extra Days
-            let compDate = new Date(doj.getFullYear(), doj.getMonth() + (periodYears * 12), doj.getDate() - 1);
-            if(extraDays > 0) compDate.setDate(compDate.getDate() + extraDays);
-
-            // Declaration Date = Completion Date + 1 day
+            let compDate = new Date(doj.getFullYear(), doj.getMonth() + (period * 12), doj.getDate() - 1);
+            if(extra > 0) compDate.setDate(compDate.getDate() + extra);
             let declDate = new Date(compDate);
             declDate.setDate(declDate.getDate() + 1);
-
             const fmt = { day: '2-digit', month: 'long', year: 'numeric' };
-            
             document.getElementById('prob-comp-display').innerText = compDate.toLocaleDateString('en-IN', fmt);
             document.getElementById('prob-decl-display').innerText = declDate.toLocaleDateString('en-IN', fmt) + " FN";
             document.getElementById('prob-res-box').style.display = 'block';
+        }
+
+        function copyProb() {
+            const c = document.getElementById('prob-comp-display').innerText;
+            const d = document.getElementById('prob-decl-display').innerText;
+            navigator.clipboard.writeText(`Probation Details:\nCompletion: ${c}\nDeclaration: ${d}`);
+            alert("Copied to clipboard!");
         }
     </script>
 </body>
