@@ -6,179 +6,174 @@
     <title>KSR Service Suite</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📜</text></svg>">
     <style>
-        :root { --primary: #059669; --accent: #2563eb; --bg: #f3f4f6; --text: #1f2937; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; color: var(--text); padding-bottom: 30px; }
+        :root { --primary: #059669; --accent: #2563eb; --warning: #d97706; --bg: #f3f4f6; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; }
         
-        /* Navigation Tabs */
-        .tabs { display: flex; background: white; position: sticky; top: 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); z-index: 100; }
-        .tab-btn { flex: 1; padding: 16px; border: none; background: none; font-weight: 700; color: #9ca3af; cursor: pointer; border-bottom: 3px solid transparent; transition: 0.3s; }
+        .tabs { display: flex; background: white; position: sticky; top: 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 100; overflow-x: auto; }
+        .tab-btn { flex: 1; min-width: 100px; padding: 15px; border: none; background: none; font-weight: bold; color: #9ca3af; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; }
         .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); }
 
         .container { display: flex; justify-content: center; padding: 15px; }
-        .card { background: white; padding: 25px; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 420px; display: none; }
-        .card.active { display: block; animation: slideUp 0.4s ease-out; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 420px; display: none; }
+        .card.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        h2 { text-align: center; margin: 0 0 20px 0; font-size: 20px; color: #111827; }
+        label { display: block; margin: 15px 0 5px; font-weight: 600; font-size: 14px; color: #374151; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 10px; box-sizing: border-box; font-size: 16px; margin-bottom: 5px; background: white; }
+        
+        .opt-box { background: #f0fdf4; padding: 12px; border-radius: 10px; display: flex; align-items: center; margin: 15px 0; border: 1px solid #d1fae5; }
+        .opt-box input { width: auto; margin-right: 10px; margin-bottom: 0; scale: 1.3; }
 
-        h2 { text-align: center; margin: 0 0 20px; font-size: 22px; color: #111827; }
-        label { display: block; margin: 15px 0 6px; font-weight: 600; font-size: 14px; }
-        input { width: 100%; padding: 14px; border: 2px solid #e5e7eb; border-radius: 12px; box-sizing: border-box; font-size: 16px; transition: border-color 0.2s; }
-        input:focus { outline: none; border-color: var(--primary); }
+        .btn-row { display: flex; gap: 10px; margin-top: 15px; }
+        button { flex: 2; border: none; padding: 16px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; color: white; transition: opacity 0.2s; }
+        .btn-calc { background: var(--primary); }
+        .btn-reset { flex: 1; background: #9ca3af; }
         
-        /* Special Toggle Style */
-        .opt-box { background: #f0fdf4; padding: 14px; border-radius: 12px; display: flex; align-items: center; margin: 15px 0; border: 1px solid #d1fae5; cursor: pointer; }
-        .opt-box input { width: auto; margin-right: 12px; scale: 1.4; cursor: pointer; }
-
-        /* Buttons */
-        .btn-row { display: flex; gap: 10px; margin-top: 20px; }
-        button.calc-btn { flex: 2; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; }
-        button.reset-btn { flex: 1; background: #f3f4f6; color: #4b5563; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
-        
-        /* Result Styles */
-        .result-box { margin-top: 25px; padding: 20px; border-radius: 16px; text-align: center; display: none; }
-        #el-result { background: #ecfdf5; border: 1px solid #10b981; }
-        #ret-result { background: #eff6ff; border: 1px solid #3b82f6; }
-        
-        .res-val { font-size: 30px; font-weight: 800; margin: 8px 0; }
-        .countdown { display: inline-block; background: #fee2e2; color: #b91c1c; padding: 8px 15px; border-radius: 10px; font-size: 13px; font-weight: 700; margin-top: 12px; }
-        
-        .ksr-note { font-size: 11px; color: #9ca3af; margin-top: 20px; line-height: 1.4; text-align: center; }
+        .result-box { margin-top: 20px; padding: 15px; border-radius: 12px; text-align: center; display: none; border: 1px dashed #cbd5e1; }
+        .res-val { font-size: 22px; font-weight: 800; margin: 5px 0; line-height: 1.2; }
+        .res-sub { font-size: 13px; color: #64748b; margin-top: 10px; }
+        .ksr-note { font-size: 11px; color: #9ca3af; text-align: center; margin-top: 20px; line-height: 1.4; }
     </style>
 </head>
 <body>
 
     <nav class="tabs">
-        <button class="tab-btn active" onclick="showTab(event, 'el-tab')">EL Calc</button>
-        <button class="tab-btn" onclick="showTab(event, 'ret-tab')">Retirement</button>
+        <button class="tab-btn active" onclick="openTab(event, 'el-tab')">EL Calc</button>
+        <button class="tab-btn" onclick="openTab(event, 'ret-tab')">Retirement</button>
+        <button class="tab-btn" onclick="openTab(event, 'prob-tab')">Probation</button>
     </nav>
 
     <div class="container">
         <div id="el-tab" class="card active">
-            <h2>Earned Leave</h2>
-            <label>From Date</label>
-            <input type="date" id="elfrom">
-            
-            <label>To Date</label>
-            <input type="date" id="elto">
-            
-            <label>Other Leave Taken (Days)</label>
-            <input type="number" id="ellv" value="0">
-
-            <label class="opt-box">
-                <input type="checkbox" id="isFirst">
-                <span>First Year of Service (1/22)</span>
-            </label>
-
+            <h2>Earned Leave Calculator</h2>
+            <label>From Date</label><input type="date" id="elfrom">
+            <label>To Date</label><input type="date" id="elto">
+            <label>Other Leaves (Days)</label><input type="number" id="ellv" value="0">
+            <div class="opt-box">
+                <input type="checkbox" id="isFirstYear"><label style="margin:0" for="isFirstYear">First Year of Service? (1/22)</label>
+            </div>
             <div class="btn-row">
-                <button class="calc-btn" onclick="calculateEL()">Calculate</button>
-                <button class="reset-btn" onclick="resetForm()">Reset</button>
+                <button class="btn-calc" onclick="calcEL()">Calculate</button>
+                <button class="btn-reset" onclick="resetForm('el-tab')">Reset</button>
             </div>
-
-            <div id="el-result" class="result-box">
-                <div style="font-size: 13px; color: #065f46;">Earned Leave Accrued:</div>
-                <div class="res-val" id="el-display" style="color: #047857;"></div>
-                <div id="el-net" style="font-size: 11px; color: #065f46; opacity: 0.7;"></div>
+            <div id="el-res-box" class="result-box" style="background:#ecfdf5">
+                <div style="font-size:13px">Total Earned Leave:</div>
+                <div class="res-val" id="el-display" style="color:var(--primary)"></div>
             </div>
-            <p class="ksr-note">Calculated as per Kerala Service Rules (KSR).</p>
         </div>
 
         <div id="ret-tab" class="card">
-            <h2>Retirement Details</h2>
-            <label>Date of Birth</label>
-            <input type="date" id="dob">
+            <h2>Retirement Date</h2>
+            <label>Date of Birth</label><input type="date" id="dob">
+            <label>Retirement Age</label><input type="number" id="retage" value="56">
+            <div class="btn-row">
+                <button class="btn-calc" style="background:var(--accent)" onclick="calcRet()">Calculate</button>
+                <button class="btn-reset" onclick="resetForm('ret-tab')">Reset</button>
+            </div>
+            <div id="ret-res-box" class="result-box" style="background:#eff6ff">
+                <div style="font-size:13px">Date of Retirement:</div>
+                <div class="res-val" id="ret-display" style="color:var(--accent)"></div>
+                <div id="ret-rem" style="font-size:12px; color:#ef4444; font-weight:bold"></div>
+            </div>
+        </div>
+
+        <div id="prob-tab" class="card">
+            <h2>Probation Calculator</h2>
+            <label>Date of Entry into Service</label>
+            <input type="date" id="doj">
             
-            <label>Retirement Age</label>
-            <input type="number" id="retage" value="56">
+            <label>Probation Period</label>
+            <select id="prob-period">
+                <option value="2">2 Years</option>
+                <option value="1">1 Year</option>
+                <option value="0.5">6 Months</option>
+            </select>
+            
+            <label>Non-Probation Days (Leave, etc.)</label>
+            <input type="number" id="non-prob" value="0">
 
             <div class="btn-row">
-                <button class="calc-btn" style="background: var(--accent);" onclick="calculateRet()">Find Date</button>
-                <button class="reset-btn" onclick="resetForm()">Reset</button>
+                <button class="btn-calc" style="background:var(--warning)" onclick="calcProb()">Calculate</button>
+                <button class="btn-reset" onclick="resetForm('prob-tab')">Reset</button>
             </div>
 
-            <div id="ret-result" class="result-box">
-                <div style="font-size: 13px; color: #1e40af;">Superannuation Date:</div>
-                <div class="res-val" id="ret-display" style="color: #1d4ed8;"></div>
-                <div id="ret-day" style="font-size: 13px; font-weight: 600; color: #1e40af;"></div>
-                <div class="countdown" id="ret-countdown"></div>
+            <div id="prob-res-box" class="result-box" style="background:#fff7ed; text-align: left;">
+                <div style="font-size:13px; color:#9a3412;">1. Date of Completion:</div>
+                <div class="res-val" id="prob-comp-display" style="color:var(--warning); margin-bottom:15px;"></div>
+                
+                <div style="font-size:13px; color:#9a3412; border-top: 1px solid #ffedd5; padding-top:10px;">2. Date of Declaration:</div>
+                <div class="res-val" id="prob-decl-display" style="color:var(--warning);"></div>
+                <div style="font-size:11px; color:#c2410c; font-style:italic;">(Forenoon of the next day)</div>
             </div>
-            <p class="ksr-note">KSR Rule: If DOB is the 1st, retirement is the last day of the previous month.</p>
+            <p class="ksr-note">Calculation as per KSR: Date of completion is the Afternoon (AN) of the calculated date.</p>
         </div>
     </div>
 
     <script>
-        // Switch between EL and Retirement tabs
-        function showTab(e, tabId) {
+        function openTab(evt, tabName) {
             document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            e.currentTarget.classList.add('active');
-            resetForm(); // Clear inputs when switching
+            document.getElementById(tabName).classList.add('active');
+            evt.currentTarget.classList.add('active');
         }
 
-        // Earned Leave Logic
-        function calculateEL() {
-            const f = document.getElementById('elfrom').value;
-            const t = document.getElementById('elto').value;
-            const l = parseInt(document.getElementById('ellv').value) || 0;
-            const ratio = document.getElementById('isFirst').checked ? 22 : 11;
+        function resetForm(tabId) {
+            const card = document.getElementById(tabId);
+            card.querySelectorAll('input').forEach(i => {
+                if(i.id === 'retage') i.value = '56';
+                else if(i.type === 'number') i.value = '0';
+                else if(i.type === 'checkbox') i.checked = false;
+                else i.value = '';
+            });
+            card.querySelector('.result-box').style.display = 'none';
+        }
 
-            if(!f || !t) return alert("Select both dates");
-            const d1 = new Date(f), d2 = new Date(t);
-            if(d2 < d1) return alert("End date is before start date");
-
-            const net = Math.floor((d2 - d1) / 86400000) + 1 - l;
-            if(net < 0) return alert("Leaves exceed total days");
-
+        function calcEL() {
+            const f = document.getElementById('elfrom').value, t = document.getElementById('elto').value;
+            const lv = parseInt(document.getElementById('ellv').value) || 0, ratio = document.getElementById('isFirstYear').checked ? 22 : 11;
+            if(!f || !t) return alert("Select dates");
+            const net = Math.floor((new Date(t) - new Date(f)) / 86400000) + 1 - lv;
             const full = Math.floor(net / ratio), rem = net % ratio;
             document.getElementById('el-display').innerText = rem === 0 ? full : `${full} - ${rem}/${ratio}`;
-            document.getElementById('el-net').innerText = `Based on ${net} net duty days`;
-            document.getElementById('el-result').style.display = 'block';
+            document.getElementById('el-res-box').style.display = 'block';
         }
 
-        // Retirement Logic (KSR 1st Day Rule)
-        function calculateRet() {
-            const b = document.getElementById('dob').value;
-            const age = parseInt(document.getElementById('retage').value);
-            if(!b) return alert("Enter Date of Birth");
+        function calcRet() {
+            const b = document.getElementById('dob').value, age = parseInt(document.getElementById('retage').value);
+            if(!b) return alert("Enter DOB");
+            let dob = new Date(b), d = dob.getDate(), m = dob.getMonth(), y = dob.getFullYear();
+            let retDate = (d === 1) ? new Date(y + age, m, 0) : new Date(y + age, m + 1, 0);
+            document.getElementById('ret-display').innerText = retDate.toLocaleDateString('en-IN', {day:'2-digit', month:'long', year:'numeric'});
+            let now = new Date(), diffY = retDate.getFullYear() - now.getFullYear(), diffM = retDate.getMonth() - now.getMonth(), diffD = retDate.getDate() - now.getDate();
+            if (diffD < 0) { diffM--; diffD += new Date(retDate.getFullYear(), retDate.getMonth(), 0).getDate(); }
+            if (diffM < 0) { diffY--; diffM += 12; }
+            document.getElementById('ret-rem').innerText = `Service Left: ${diffY}y, ${diffM}m, ${diffD}d`;
+            document.getElementById('ret-res-box').style.display = 'block';
+        }
 
-            let dob = new Date(b);
-            let d = dob.getDate(), m = dob.getMonth(), y = dob.getFullYear();
+        function calcProb() {
+            const dojVal = document.getElementById('doj').value;
+            const periodYears = parseFloat(document.getElementById('prob-period').value);
+            const extraDays = parseInt(document.getElementById('non-prob').value) || 0;
 
-            let retDate;
-            if (d === 1) {
-                // Born on 1st: Last day of previous month
-                retDate = new Date(y + age, m, 0);
-            } else {
-                // Standard: Last day of birth month
-                retDate = new Date(y + age, m + 1, 0);
-            }
+            if(!dojVal) return alert("Enter Date of Joining");
 
-            // Display formatted date
+            let doj = new Date(dojVal);
+            
+            // Completion Date = DOJ + Period - 1 day + Extra Days
+            let compDate = new Date(doj.getFullYear(), doj.getMonth() + (periodYears * 12), doj.getDate() - 1);
+            if(extraDays > 0) compDate.setDate(compDate.getDate() + extraDays);
+
+            // Declaration Date = Completion Date + 1 day
+            let declDate = new Date(compDate);
+            declDate.setDate(declDate.getDate() + 1);
+
             const fmt = { day: '2-digit', month: 'long', year: 'numeric' };
-            document.getElementById('ret-display').innerText = retDate.toLocaleDateString('en-IN', fmt);
-            document.getElementById('ret-day').innerText = retDate.toLocaleDateString('en-IN', {weekday:'long'});
-
-            // Calculate remaining service
-            const now = new Date();
-            let rem = getRemaining(now, retDate);
-            document.getElementById('ret-countdown').innerText = `Service Left: ${rem.y}y, ${rem.m}m, ${rem.d}d`;
-            document.getElementById('ret-result').style.display = 'block';
-        }
-
-        function getRemaining(start, end) {
-            if (end < start) return {y:0, m:0, d:0};
-            let y = end.getFullYear() - start.getFullYear();
-            let m = end.getMonth() - start.getMonth();
-            let d = end.getDate() - start.getDate();
-            if (d < 0) { m--; d += new Date(end.getFullYear(), end.getMonth(), 0).getDate(); }
-            if (m < 0) { y--; m += 12; }
-            return {y, m, d};
-        }
-
-        function resetForm() {
-            document.querySelectorAll('input').forEach(i => { if(i.type !== 'number') i.value = ''; else if(i.id === 'retage') i.value = '56'; else i.value = '0'; });
-            document.querySelectorAll('.result-box').forEach(r => r.style.display = 'none');
-            document.getElementById('isFirst').checked = false;
+            
+            document.getElementById('prob-comp-display').innerText = compDate.toLocaleDateString('en-IN', fmt);
+            document.getElementById('prob-decl-display').innerText = declDate.toLocaleDateString('en-IN', fmt) + " FN";
+            document.getElementById('prob-res-box').style.display = 'block';
         }
     </script>
 </body>
