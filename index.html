@@ -3,119 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KSR Service Calc</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📅</text></svg>">
+    <title>KSR Service Suite</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📜</text></svg>">
     <style>
-        :root { --primary: #059669; --bg: #f3f4f6; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 15px; margin: 0; }
-        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-        h2 { text-align: center; color: #111827; margin-bottom: 5px; }
-        p.sub { text-align: center; font-size: 12px; color: #6b7280; margin-bottom: 20px; }
-        label { display: block; margin: 15px 0 5px; font-weight: 600; font-size: 14px; }
-        input[type="date"], input[type="number"] { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
-        
-        .toggle-container { display: flex; align-items: center; margin: 15px 0; background: #ecfdf5; padding: 10px; border-radius: 10px; }
-        .toggle-container input { width: auto; margin-right: 10px; scale: 1.5; }
-        
-        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
-        button { flex: 2; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; }
-        .btn-reset { flex: 1; background: #9ca3af; }
-        
-        #result-area { margin-top: 20px; padding: 20px; background: #f0fdf4; border: 2px solid #d1fae5; border-radius: 15px; display: none; text-align: center; }
-        .res-val { font-size: 32px; color: var(--primary); font-weight: 800; margin: 10px 0; }
-        .copy-btn { background: none; color: var(--primary); border: 1px solid var(--primary); padding: 5px 10px; font-size: 12px; margin-top: 5px; width: auto; }
-
-        .history { margin-top: 25px; border-top: 1px solid #e5e7eb; padding-top: 15px; }
-        .history-item { font-size: 12px; background: white; border-bottom: 1px solid #f3f4f6; padding: 8px 0; display: flex; justify-content: space-between; }
+        :root { --primary: #059669; --accent: #2563eb; --bg: #f3f4f6; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; }
+        .tabs { display: flex; background: white; position: sticky; top: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 100; }
+        .tab-btn { flex: 1; padding: 15px; border: none; background: none; font-weight: bold; color: #6b7280; cursor: pointer; border-bottom: 3px solid transparent; }
+        .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); }
+        .container { display: flex; justify-content: center; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; display: none; }
+        .card.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        h2 { text-align: center; color: #111827; margin: 0 0 20px 0; font-size: 20px; }
+        label { display: block; margin: 15px 0 5px; font-weight: 600; font-size: 14px; color: #374151; }
+        input { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 10px; box-sizing: border-box; font-size: 16px; margin-bottom: 10px; }
+        .toggle-box { background: #f0fdf4; padding: 12px; border-radius: 10px; display: flex; align-items: center; margin-bottom: 15px; border: 1px solid #d1fae5; }
+        .toggle-box input { width: auto; margin-right: 10px; margin-bottom: 0; scale: 1.3; }
+        button.main-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        button.retire-btn { background: var(--accent); }
+        .result-box { margin-top: 20px; padding: 15px; background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1; text-align: center; }
+        .res-text { font-size: 24px; font-weight: 800; color: #1e293b; margin: 10px 0; }
+        .countdown { font-size: 14px; color: #ef4444; font-weight: 600; background: #fee2e2; padding: 8px; border-radius: 8px; margin-top: 10px; }
+        .footer-note { font-size: 11px; color: #94a3b8; text-align: center; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>Service Calc</h2>
-    <p class="sub">Kerala Govt Service Rules (EL)</p>
-    
-    <label>From Date</label>
-    <input type="date" id="d1">
-    
-    <label>To Date</label>
-    <input type="date" id="d2">
-    
-    <label>Other Leave Taken (Days)</label>
-    <input type="number" id="lv" value="0">
-
-    <div class="toggle-container">
-        <input type="checkbox" id="firstYear">
-        <label style="margin:0; cursor:pointer;" for="firstYear">First Year of Service? (1/22)</label>
-    </div>
-    
-    <div class="btn-group">
-        <button onclick="calculate()">Calculate</button>
-        <button class="btn-reset" onclick="resetAll()">Reset</button>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openTab(event, 'el-tab')">EL Calc</button>
+        <button class="tab-btn" onclick="openTab(event, 'retire-tab')">Retirement</button>
     </div>
 
-    <div id="result-area">
-        <div style="font-size: 14px; color: #374151;">Earned Leave Result:</div>
-        <div class="res-val" id="resDisplay"></div>
-        <button class="copy-btn" onclick="copyResult()">📋 Copy Result</button>
+    <div class="container">
+        <div id="el-tab" class="card active">
+            <h2>Earned Leave Calculator</h2>
+            <label>From Date</label><input type="date" id="el-from">
+            <label>To Date</label><input type="date" id="el-to">
+            <label>Other Leaves (Days)</label><input type="number" id="el-lv" value="0">
+            <div class="toggle-box">
+                <input type="checkbox" id="isFirstYear"><label style="margin:0" for="isFirstYear">First Year of Service? (1/22)</label>
+            </div>
+            <button class="main-btn" onclick="calcEL()">Calculate EL</button>
+            <div id="el-result" class="result-box" style="display:none">
+                <div style="font-size: 13px;">Total Earned Leave:</div>
+                <div class="res-text" id="el-display" style="color:var(--primary)"></div>
+            </div>
+        </div>
+
+        <div id="retire-tab" class="card">
+            <h2>Retirement Date</h2>
+            <label>Date of Birth</label><input type="date" id="dob">
+            <label>Retirement Age</label><input type="number" id="retire-age" value="56">
+            <button class="main-btn retire-btn" onclick="calcRetire()">Find Retirement Date</button>
+            <div id="retire-result" class="result-box" style="display:none">
+                <div style="font-size: 13px;">Date of Retirement:</div>
+                <div class="res-text" id="retire-display" style="color:var(--accent)"></div>
+                <div id="retire-day" style="font-size:12px; color:#64748b; margin-bottom:10px;"></div>
+                <div class="countdown" id="time-left"></div>
+            </div>
+            <p class="footer-note">*Calculated as per KSR: If DOB is 1st, retirement is last day of previous month.</p>
+        </div>
     </div>
 
-    <div class="history">
-        <div style="font-weight: bold; font-size: 14px; margin-bottom: 10px;">Recent History</div>
-        <div id="historyList"></div>
-    </div>
-</div>
+    <script>
+        function openTab(evt, tabName) {
+            let cards = document.getElementsByClassName("card");
+            for (let card of cards) card.classList.remove("active");
+            let buttons = document.getElementsByClassName("tab-btn");
+            for (let btn of buttons) btn.classList.remove("active");
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
 
-<script>
-    function calculate() {
-        const s1 = document.getElementById('d1').value;
-        const s2 = document.getElementById('d2').value;
-        const leaves = parseInt(document.getElementById('lv').value) || 0;
-        const isFirstYear = document.getElementById('firstYear').checked;
-        const ratio = isFirstYear ? 22 : 11;
+        function calcEL() {
+            const s1 = document.getElementById('el-from').value, s2 = document.getElementById('el-to').value;
+            const lv = parseInt(document.getElementById('el-lv').value) || 0;
+            const ratio = document.getElementById('isFirstYear').checked ? 22 : 11;
+            if(!s1 || !s2) return alert("Select dates");
+            const d1 = new Date(s1), d2 = new Date(s2);
+            const net = Math.floor((d2 - d1) / 86400000) + 1 - lv;
+            const full = Math.floor(net / ratio), rem = net % ratio;
+            document.getElementById('el-display').innerText = rem === 0 ? full : `${full} - ${rem}/${ratio}`;
+            document.getElementById('el-result').style.display = 'block';
+        }
 
-        if (!s1 || !s2) { alert("Select dates!"); return; }
+        function calcRetire() {
+            const dobInput = document.getElementById('dob').value;
+            const age = parseInt(document.getElementById('retire-age').value);
+            if(!dobInput) return alert("Enter Date of Birth");
 
-        const d1 = new Date(s1);
-        const d2 = new Date(s2);
-        if (d2 < d1) { alert("Invalid Date Range"); return; }
+            let dob = new Date(dobInput);
+            let birthDay = dob.getDate();
+            let birthMonth = dob.getMonth(); 
+            let birthYear = dob.getFullYear();
 
-        const totalDays = Math.floor((d2 - d1) / (1000 * 3600 * 24)) + 1;
-        const net = totalDays - leaves;
-        
-        const full = Math.floor(net / ratio);
-        const rem = net % ratio;
-        const resultText = (rem === 0) ? full : `${full} - ${rem}/${ratio}`;
+            let retireDate;
+            if (birthDay === 1) {
+                // RULE: If born on 1st, retire last day of PREVIOUS month
+                retireDate = new Date(birthYear + age, birthMonth, 0);
+            } else {
+                // RULE: Retire last day of the birth month
+                retireDate = new Date(birthYear + age, birthMonth + 1, 0);
+            }
 
-        document.getElementById('result-area').style.display = 'block';
-        document.getElementById('resDisplay').innerText = resultText;
+            // Formatting Result
+            const options = { day: '2-digit', month: 'long', year: 'numeric' };
+            document.getElementById('retire-display').innerText = retireDate.toLocaleDateString('en-IN', options);
+            document.getElementById('retire-day').innerText = "Weekday: " + retireDate.toLocaleDateString('en-IN', {weekday:'long'});
 
-        saveToHistory(resultText, `${s1} to ${s2}`);
-    }
+            // Countdown Logic
+            const today = new Date();
+            let diff = getRemainingTime(today, retireDate);
+            document.getElementById('time-left').innerText = `Remaining: ${diff.y}y, ${diff.m}m, ${diff.d}d`;
+            document.getElementById('retire-result').style.display = 'block';
+        }
 
-    function copyResult() {
-        const text = document.getElementById('resDisplay').innerText;
-        navigator.clipboard.writeText("My Earned Leave: " + text);
-        alert("Result copied to clipboard!");
-    }
-
-    function resetAll() {
-        document.getElementById('d1').value = '';
-        document.getElementById('d2').value = '';
-        document.getElementById('lv').value = '0';
-        document.getElementById('firstYear').checked = false;
-        document.getElementById('result-area').style.display = 'none';
-    }
-
-    function saveToHistory(res, period) {
-        const list = document.getElementById('historyList');
-        const item = document.createElement('div');
-        item.className = 'history-item';
-        item.innerHTML = `<span>${period}</span> <strong>${res}</strong>`;
-        list.prepend(item);
-        if(list.children.length > 5) list.lastChild.remove();
-    }
-</script>
-
+        function getRemainingTime(start, end) {
+            if (end < start) return {y:0, m:0, d:0};
+            let y = end.getFullYear() - start.getFullYear();
+            let m = end.getMonth() - start.getMonth();
+            let d = end.getDate() - start.getDate();
+            if (d < 0) { m--; d += new Date(end.getFullYear(), end.getMonth(), 0).getDate(); }
+            if (m < 0) { y--; m += 12; }
+            return {y, m, d};
+        }
+    </script>
 </body>
 </html>
