@@ -28,8 +28,10 @@
         .opt-box { background: #eff6ff; padding: 12px; border-radius: 12px; display: flex; align-items: center; margin: 10px 0; border: 1px solid #dbeafe; cursor: pointer; }
         .opt-box input { width: auto; margin-right: 12px; transform: scale(1.3); }
 
-        button { width: 100%; padding: 15px; border: none; border-radius: 14px; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.2s; margin-top: 10px; color: white; }
+        .button-group { display: flex; gap: 10px; }
+        button { flex: 1; padding: 15px; border: none; border-radius: 14px; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.2s; margin-top: 10px; color: white; }
         .btn-calc { background: var(--accent); }
+        .btn-reset { background: #64748b; }
         
         .result-panel { margin-top: 25px; padding: 20px; border-radius: 18px; display: none; border: 1px solid #e2e8f0; }
         .res-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 14px; }
@@ -55,13 +57,19 @@
         <div class="input-group"><label>Duty Period From</label><input type="date" id="el_s"></div>
         <div class="input-group"><label>Duty Period To</label><input type="date" id="el_e"></div>
         <div class="input-group"><label>Deductions (LWA, HPL etc. in Days)</label><input type="number" id="el_lwa" value="0"></div>
+        <div class="input-group"><label>Existing EL Balance (Days)</label><input type="number" id="el_existing" value="0"></div>
         <label class="opt-box">
             <input type="checkbox" id="el_first">
             <span>First Year of Service (1/22 Ratio)</span>
         </label>
-        <button class="btn-calc" onclick="calcEL()">Calculate EL</button>
+        <div class="button-group">
+            <button class="btn-calc" onclick="calcEL()">Calculate EL</button>
+            <button class="btn-reset" onclick="resetEL()">Reset</button>
+        </div>
         <div id="res_el" class="result-panel" style="background: #f0fdf4;">
             <div class="res-row">Total Net Duty Days: <b id="el_days"></b></div>
+            <div class="res-row">Newly Calculated EL: <b id="el_new" style="color: var(--success);"></b></div>
+            <div class="res-row">Existing EL Balance: <b id="el_exist_display"></b></div>
             <div class="big-result" id="el_val" style="color: var(--success);"></div>
         </div>
     </div>
@@ -71,7 +79,10 @@
         <div class="input-group"><label>Joining Date</label><input type="date" id="qs_s"></div>
         <div class="input-group"><label>Retirement Date</label><input type="date" id="qs_e"></div>
         <div class="input-group"><label>LWA without MC (Days)</label><input type="number" id="qs_lwa" value="0"></div>
-        <button class="btn-calc" onclick="calcQS()" style="background: var(--success);">Calculate QS</button>
+        <div class="button-group">
+            <button class="btn-calc" onclick="calcQS()" style="flex: 1; background: var(--success);">Calculate QS</button>
+            <button class="btn-reset" onclick="resetQS()">Reset</button>
+        </div>
         
         <div id="res_qs" class="result-panel" style="background: #f0fdfa;">
             <div class="res-row">Net Service (Y-M-D): <b id="qs_net"></b></div>
@@ -98,7 +109,10 @@
             </select>
         </div>
         <div class="input-group"><label>Non-Qualifying Days (LWA/Dies-non)</label><input type="number" id="pb_lwa" value="0"></div>
-        <button class="btn-calc" onclick="calcProb()" style="background: var(--warning);">Check Completion</button>
+        <div class="button-group">
+            <button class="btn-calc" onclick="calcProb()" style="flex: 1; background: var(--warning);">Check Completion</button>
+            <button class="btn-reset" onclick="resetProb()">Reset</button>
+        </div>
         <div id="res_pb" class="result-panel" style="background: #fffbeb;">
             <div class="res-row">Completion Date: <b id="pb_c"></b></div>
             <div class="res-row">Declaration (FN): <b id="pb_d"></b></div>
@@ -109,8 +123,15 @@
         <h2>Retirement Date</h2>
         <div class="input-group"><label>Date of Birth</label><input type="date" id="dob"></div>
         <div class="input-group"><label>Retirement Age</label><input type="number" id="ra" value="56"></div>
-        <button class="btn-calc" onclick="calcRet()" style="background: var(--primary);">Find Date</button>
-        <div id="res_ret" class="result-panel" style="background: #f8fafc;"><div class="big-result" id="ret_val" style="color: var(--danger);"></div></div>
+        <div class="button-group">
+            <button class="btn-calc" onclick="calcRet()" style="flex: 1; background: var(--primary);">Find Date</button>
+            <button class="btn-reset" onclick="resetRet()">Reset</button>
+        </div>
+        <div id="res_ret" class="result-panel" style="background: #f8fafc;">
+            <div class="big-result" id="ret_val" style="color: var(--danger);"></div>
+            <hr style="border: 0.5px solid #e2e8f0; margin: 15px 0;">
+            <div class="res-row">Remaining Time (from today): <b id="ret_remaining"></b></div>
+        </div>
     </div>
 </div>
 
@@ -124,14 +145,29 @@
     function calcEL() {
         let s = new Date(document.getElementById('el_s').value), e = new Date(document.getElementById('el_e').value);
         let lwa = parseInt(document.getElementById('el_lwa').value) || 0;
+        let existing = parseInt(document.getElementById('el_existing').value) || 0;
         let isFirst = document.getElementById('el_first').checked;
         let r = isFirst ? 22 : 11;
         if(isNaN(s) || isNaN(e)) return;
         let d = Math.floor((e - s) / 86400000) + 1 - lwa;
         let full = Math.floor(d/r), rem = d % r;
+        let newEL = rem === 0 ? full : full + " " + rem + "/" + r;
+        let totalEL = full + existing;
+        
         document.getElementById('el_days').innerText = d + " Days";
-        document.getElementById('el_val').innerText = rem === 0 ? full : full + " " + rem + "/" + r;
+        document.getElementById('el_new').innerText = newEL;
+        document.getElementById('el_exist_display').innerText = existing + " Days";
+        document.getElementById('el_val').innerText = totalEL + " Days (Total EL)";
         document.getElementById('res_el').style.display = 'block';
+    }
+
+    function resetEL() {
+        document.getElementById('el_s').value = '';
+        document.getElementById('el_e').value = '';
+        document.getElementById('el_lwa').value = '0';
+        document.getElementById('el_existing').value = '0';
+        document.getElementById('el_first').checked = false;
+        document.getElementById('res_el').style.display = 'none';
     }
 
     function calcQS() {
@@ -169,6 +205,13 @@
         document.getElementById('res_qs').style.display = 'block';
     }
 
+    function resetQS() {
+        document.getElementById('qs_s').value = '';
+        document.getElementById('qs_e').value = '';
+        document.getElementById('qs_lwa').value = '0';
+        document.getElementById('res_qs').style.display = 'none';
+    }
+
     function calcProb() {
         let s = new Date(document.getElementById('pb_s').value);
         let period = parseFloat(document.getElementById('pb_period').value);
@@ -183,12 +226,34 @@
         document.getElementById('res_pb').style.display = 'block';
     }
 
+    function resetProb() {
+        document.getElementById('pb_s').value = '';
+        document.getElementById('pb_period').value = '2';
+        document.getElementById('pb_lwa').value = '0';
+        document.getElementById('res_pb').style.display = 'none';
+    }
+
     function calcRet() {
         let b = new Date(document.getElementById('dob').value), a = parseInt(document.getElementById('ra').value);
         if(isNaN(b)) return;
         let r = (b.getDate() === 1) ? new Date(b.getFullYear() + a, b.getMonth(), 0) : new Date(b.getFullYear() + a, b.getMonth() + 1, 0);
         document.getElementById('ret_val').innerText = r.toLocaleDateString('en-GB', {day:'2-digit', month:'long', year:'numeric'});
+        
+        // Calculate remaining time from today
+        let today = new Date();
+        let remainingDays = Math.floor((r - today) / 86400000);
+        let remainingYears = Math.floor(remainingDays / 365.25);
+        let remainingMonths = Math.floor((remainingDays % 365.25) / 30.44);
+        let remainingDaysOnly = Math.floor((remainingDays % 365.25) % 30.44);
+        
+        document.getElementById('ret_remaining').innerText = `${remainingYears}y, ${remainingMonths}m, ${remainingDaysOnly}d`;
         document.getElementById('res_ret').style.display = 'block';
+    }
+
+    function resetRet() {
+        document.getElementById('dob').value = '';
+        document.getElementById('ra').value = '56';
+        document.getElementById('res_ret').style.display = 'none';
     }
 </script>
 </body>
