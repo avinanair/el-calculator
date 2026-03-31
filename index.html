@@ -25,6 +25,8 @@
         label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #475569; }
         input, select { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 15px; box-sizing: border-box; background: #fcfdfe; }
         
+        .fraction-helper { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+        
         .opt-box { background: #eff6ff; padding: 12px; border-radius: 12px; display: flex; align-items: center; margin: 10px 0; border: 1px solid #dbeafe; cursor: pointer; }
         .opt-box input { width: auto; margin-right: 12px; transform: scale(1.3); }
 
@@ -57,7 +59,11 @@
         <div class="input-group"><label>Duty Period From</label><input type="date" id="el_s"></div>
         <div class="input-group"><label>Duty Period To</label><input type="date" id="el_e"></div>
         <div class="input-group"><label>Deductions (LWA, HPL etc. in Days)</label><input type="number" id="el_lwa" value="0"></div>
-        <div class="input-group"><label>Existing EL Balance (Days)</label><input type="number" id="el_existing" value="0"></div>
+        <div class="input-group">
+            <label>Existing EL Balance (Days)</label>
+            <input type="text" id="el_existing" value="0" placeholder="e.g., 5 or 5 2/11">
+            <div class="fraction-helper">Enter whole days or mixed fraction (e.g., 5 2/11)</div>
+        </div>
         <label class="opt-box">
             <input type="checkbox" id="el_first">
             <span>First Year of Service (1/22 Ratio)</span>
@@ -136,6 +142,59 @@
 </div>
 
 <script>
+    // Parse mixed fraction input (e.g., "5 2/11" or "5" or "2/11")
+    function parseFraction(input) {
+        input = input.trim();
+        if (!input || input === '0') return 0;
+        
+        // Check if it contains a fraction
+        if (input.includes('/')) {
+            // Mixed fraction: "5 2/11" or improper fraction: "2/11"
+            const parts = input.split(' ');
+            let whole = 0;
+            let numerator = 0;
+            let denominator = 1;
+            
+            if (parts.length === 2) {
+                // Mixed fraction
+                whole = parseInt(parts[0]) || 0;
+                const fracParts = parts[1].split('/');
+                numerator = parseInt(fracParts[0]) || 0;
+                denominator = parseInt(fracParts[1]) || 1;
+            } else if (parts.length === 1) {
+                // Just a fraction
+                const fracParts = input.split('/');
+                numerator = parseInt(fracParts[0]) || 0;
+                denominator = parseInt(fracParts[1]) || 1;
+            }
+            
+            return whole + (numerator / denominator);
+        } else {
+            // Whole number
+            return parseFloat(input) || 0;
+        }
+    }
+
+    // Convert decimal to mixed fraction string
+    function toMixedFraction(decimal, denominator = 11) {
+        decimal = parseFloat(decimal);
+        let whole = Math.floor(decimal);
+        let remainder = decimal - whole;
+        let numerator = Math.round(remainder * denominator);
+        
+        // Handle rounding edge cases
+        if (numerator >= denominator) {
+            whole += 1;
+            numerator = 0;
+        }
+        
+        if (numerator === 0) {
+            return whole.toString();
+        } else {
+            return `${whole} ${numerator}/${denominator}`;
+        }
+    }
+
     function tab(e, n) {
         document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
         document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -145,19 +204,23 @@
     function calcEL() {
         let s = new Date(document.getElementById('el_s').value), e = new Date(document.getElementById('el_e').value);
         let lwa = parseInt(document.getElementById('el_lwa').value) || 0;
-        let existing = parseInt(document.getElementById('el_existing').value) || 0;
+        let existingInput = document.getElementById('el_existing').value;
+        let existing = parseFraction(existingInput);
         let isFirst = document.getElementById('el_first').checked;
         let r = isFirst ? 22 : 11;
         if(isNaN(s) || isNaN(e)) return;
         let d = Math.floor((e - s) / 86400000) + 1 - lwa;
         let full = Math.floor(d/r), rem = d % r;
-        let newEL = rem === 0 ? full : full + " " + rem + "/" + r;
-        let totalEL = full + existing;
+        let newELDecimal = full + (rem / r);
+        let newELDisplay = rem === 0 ? full.toString() : full + " " + rem + "/" + r;
+        
+        let totalELDecimal = existing + newELDecimal;
+        let totalELDisplay = toMixedFraction(totalELDecimal, r);
         
         document.getElementById('el_days').innerText = d + " Days";
-        document.getElementById('el_new').innerText = newEL;
-        document.getElementById('el_exist_display').innerText = existing + " Days";
-        document.getElementById('el_val').innerText = totalEL + " Days (Total EL)";
+        document.getElementById('el_new').innerText = newELDisplay;
+        document.getElementById('el_exist_display').innerText = existingInput || "0";
+        document.getElementById('el_val').innerText = totalELDisplay + " (Total EL)";
         document.getElementById('res_el').style.display = 'block';
     }
 
